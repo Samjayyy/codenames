@@ -3,6 +3,10 @@
         <a class="navbar-brand" routerLink="start" title="New game">
             <img src="./assets/detective.png" width="75" height="75" alt="Detective codenames">
         </a>
+        <div id="languages">
+            <button class="languageButton" [class.activeLanguage]="(this.dictionaryStore.getLanguage() | async ) == Language.EN" (click)="this.changeLanguage(Language.EN)"><img src="./assets/en.png"/></button>
+            <button class="languageButton" [class.activeLanguage]="(this.dictionaryStore.getLanguage() | async ) == Language.NL" (click)="this.changeLanguage(Language.NL)"><img src="./assets/nl.png"/></button>
+        </div>
         <div class="navbar-text">
             <app-game-score></app-game-score>
         </div>
