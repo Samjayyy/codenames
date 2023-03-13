@@ -9,6 +9,7 @@ export enum Language {
   NL = "nl",
   EN = "en",
 }
+export const WORD_COUNT = 392; // TODO make this dynamic
 
 @Injectable({ providedIn: "root" })
 export class DictionaryStore extends StoreService<string[]> {

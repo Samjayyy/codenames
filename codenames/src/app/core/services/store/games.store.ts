@@ -1,53 +1,40 @@
 import { Injectable } from "@angular/core";
-import { tap, filter, map } from "rxjs/operators";
-import { StoreService, Store } from "./stores";
+import { StoreService } from "./stores";
 import { Game } from "src/app/shared/models/game.model";
 import { Word, CardType } from "src/app/shared/models/word.model";
-import { DictionaryStore } from "./dictionary.store";
+import { WORD_COUNT } from "./dictionary.store";
 import * as seedrandom from "seedrandom";
 
 @Injectable({ providedIn: "root" })
 export class GamesStore extends StoreService<Game> {
-  constructor(private dictionaryStore: DictionaryStore) {
+  all_ids: number[] = [];
+  constructor() {
     super();
+    this.all_ids = [...Array(WORD_COUNT).keys()];
   }
 
   public createNew(gameId: string, isLocalCodeMaster: boolean): void {
-    this.setStateFetching();
-    this.dictionaryStore.store$
-      .pipe(
-        filter(
-          (data: Store<string[]>) =>
-            !data.error && !data.isFetching && data.data !== null
-        ),
-        map((data: Store<string[]>) => data.data),
-        tap((data: string[]) =>
-          this.next(this.createGameFor(gameId, isLocalCodeMaster, data))
-        )
-      )
-      .subscribe();
+    this.next(this.createGameFor(gameId, isLocalCodeMaster));
   }
 
-  private createGameFor(
-    gameId: string,
-    isLocalCodeMaster: boolean,
-    words: string[]
-  ): Game {
+  private createGameFor(gameId: string, isLocalCodeMaster: boolean): Game {
     const game = new Game(gameId, isLocalCodeMaster);
-    this.addWords(game, words);
+    this.generateIds(game);
     return game;
   }
 
-  private addWords(game: Game, fromWords: string[], count: number = 25): void {
+  private generateIds(game: Game, count: number = 25): void {
+    // should be deterministic so reset state to sorted
+    this.all_ids.sort();
+
+    // shuffle all ids by given seed
     seedrandom(game.seed, { global: true });
-    const shuffled = [];
-    shuffled.push(...fromWords);
-    this.shuffle(fromWords, count);
+    this.shuffle(this.all_ids, count);
     for (let i = 0; i < count; i++) {
-      game.words.push(new Word(fromWords[i], this.cardType(i)));
+      game.words.push(new Word(this.all_ids[i], this.cardType(i)));
     }
-    this.shuffle(game.words, count);
-    console.log(game.seed, game.words);
+
+    this.shuffle(game.words, count); // additional shuffle for mixing up the card types
   }
 
   private nextNumber(max: number): number {
@@ -79,7 +66,8 @@ export class GamesStore extends StoreService<Game> {
     return ix === 1 ? CardType.DEATH : CardType.NEUTRAL;
   }
 
-  private shuffle<T>(arr: T[], firstN: number = 25) {
+  // shuffles array in place
+  private shuffle<T>(arr: T[], firstN: number = 25): void {
     if (arr.length < firstN) {
       // accept to be greater, not going to be in our case
       firstN = arr.length;
