@@ -1,1 +1,1 @@
-ng build --prod --base-href "/games/codenames/"
+ng build --configuration production --base-href "/games/codenames/"
