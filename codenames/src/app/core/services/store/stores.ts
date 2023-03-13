@@ -1,6 +1,6 @@
-import { BehaviorSubject } from 'rxjs';
-import { OperatorFunction, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { BehaviorSubject } from "rxjs";
+import { OperatorFunction, throwError } from "rxjs";
+import { catchError } from "rxjs/operators";
 
 export interface Store<T> {
   isFetching: boolean;
@@ -15,26 +15,34 @@ export abstract class StoreService<T> {
     return this._store$;
   }
 
-  public next(data: T = null, isFetching: boolean = false, error: string = null): void {
+  public next(
+    data: T = null,
+    isFetching: boolean = false,
+    error: string = null
+  ): void {
     this._store$.next(this.make(data, isFetching, error));
   }
 
-  private make(data: T = null, isFetching: boolean = false, error: string = null): Store<T> {
+  private make(
+    data: T = null,
+    isFetching: boolean = false,
+    error: string = null
+  ): Store<T> {
     return {
       isFetching,
       data,
-      error
+      error,
     };
   }
 
   catchErrorAndReset(): OperatorFunction<any, any> {
-    return catchError(err => {
+    return catchError((err) => {
       this.store$.next({
         ...this.store$.value,
         isFetching: false,
-        error: err
+        error: err,
       });
-      return throwError(err);
+      return throwError(() => err);
     });
   }
 
@@ -45,4 +53,3 @@ export abstract class StoreService<T> {
     });
   }
 }
-
